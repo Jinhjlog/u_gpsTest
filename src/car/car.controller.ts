@@ -1,4 +1,4 @@
-import { Body, Controller, Get } from "@nestjs/common";
+import { Body, Controller, Get } from '@nestjs/common';
 import { CarService } from './car.service';
 
 @Controller('')

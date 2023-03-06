@@ -8,12 +8,13 @@ import { raw } from 'express';
 export class CarService {
   private carArr: Car[] = [
     {
-      custId: 'test1234',
-      carList: ['01가1001', '01가1002', '01가1003'],
+      custId: 'test1234', // 고객사ID
+      carList: ['01가1001', '01가1002', '01가1003'], // 차량 번호 입력
       lat_lon: new Map([
         [
-          '01가1001',
+          '01가1001', // carList 첫 번째 차량
           [
+            // 위도, 경도
             [35.1104359, 126.8758168],
             [35.1101437, 126.8758168],
             [35.1098723, 126.8757785],
@@ -50,7 +51,7 @@ export class CarService {
           ],
         ],
         [
-          '01가1002',
+          '01가1002', // carList 두 번째 차량
           [
             [35.1104359, 126.8758168],
             [35.1101437, 126.8758168],
@@ -58,7 +59,7 @@ export class CarService {
           ],
         ],
         [
-          '01가1003',
+          '01가1003', // carList 세 번째 차량
           [
             [3, 126.8747403],
             [3, 126.8750192],
@@ -69,7 +70,7 @@ export class CarService {
           ],
         ],
       ]),
-    },
+    }, // index : carArr[0]
     {
       custId: 'test2222',
       carList: ['02가1001', '02가1002'],
@@ -95,7 +96,7 @@ export class CarService {
           ],
         ],
       ]),
-    },
+    }, // index : carArr[1]
     {
       custId: 'test3333',
       carList: ['03가1001'],
@@ -111,9 +112,9 @@ export class CarService {
           ],
         ],
       ]),
-    },
+    }, // index : carArr[2]
   ];
-  @Interval(5000)
+  @Interval(5000) // 5초
   interval() {
     for (let i = 0; i < this.carArr.length; i++) {
       for (let j = 0; j < this.carArr[i].carList.length; j++) {
@@ -122,6 +123,8 @@ export class CarService {
         )[0];
         this.carArr[i].lat_lon.get(this.carArr[i].carList[j]).shift();
         this.carArr[i].lat_lon.get(this.carArr[i].carList[j]).push(tempArr);
+
+        // 전체 차량 위도 경도 console.log
         console.log(
           `${i + 1}-${j + 1} : ${
             this.carArr[i].lat_lon.get(this.carArr[i].carList[j])[0]
@@ -144,8 +147,6 @@ export class CarService {
       if (car.custId === data.custId) {
         rsltCd = '000';
         for (let i = 0; i < car.carList.length; i++) {
-          //console.log(car.lat_lon.get(car.carList[i])[0][0]);
-
           for (let j = 0; j < data.carList.length; j++) {
             if (car.carList[i] === data.carList[j].carNum) {
               carInfo.push({
@@ -155,54 +156,10 @@ export class CarService {
               });
             }
           }
-
-          // carInfo.push({
-          //   carNum: car.carList[i],
-          //   gpsLat: car.lat_lon.get(car.carList[i])[0][0],
-          //   gpsLong: car.lat_lon.get(car.carList[i])[0][1],
-          // });
         }
       }
     });
 
-    /*
-    await this.carArr.forEach((car) => {
-      if (car.custId !== data.custId) {
-        //throw new Error('202 API 인증키 사용불가');
-        throw new NotFoundException('notFound : ' + data.custId);
-      }
-
-      console.log('length');
-      console.log(data.carList.length);
-
-      car.carList.forEach((list) => {
-        for (let i = 0; i < data.carList.length; i++) {
-          if (list === data.carList[i].carNum) {
-            carInfo.push(list);
-          }
-        }
-      });
-    });
-    console.log(carInfo);
-    let resultArr = [];
-
-    for (let j = 0; j < carInfo.length; j++) {
-      resultArr.push({
-        carNum: this.carArr[0].carList[j],
-        gpsLat: this.carArr[0].lat_lon.get(carInfo[j])[0][0],
-        gpsLong: this.carArr[0].lat_lon.get(carInfo[j])[0][1],
-      });
-    }
-    */
-
-    /*
-      for (let i = 0; i < carInfo.length; i++) {
-        resultArr.push({
-          carNum: this.carArr[0].carList[i],
-          gpsLat: this.carArr[0].lat_lon.get(carInfo[i])[0][0],
-          gpsLong: this.carArr[0].lat_lon.get(carInfo[i])[0][1],
-        });
-      }*/
     if (carInfo.length <= 0) {
       rsltCd = '302';
     }
