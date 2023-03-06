@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Interval, SchedulerRegistry } from '@nestjs/schedule';
 import { Car } from './entities/car.entity';
-import { map } from 'rxjs';
-import { raw } from 'express';
 
 @Injectable()
 export class CarService {
