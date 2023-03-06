@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Interval, SchedulerRegistry } from '@nestjs/schedule';
 import { Car } from './entities/car.entity';
 import { map } from 'rxjs';
+import { raw } from 'express';
 
 @Injectable()
 export class CarService {
   private carArr: Car[] = [
     {
       custId: 'test1234',
-      carList: ['01가1001'],
+      carList: ['01가1001', '01가1002', '01가1003'],
       lat_lon: new Map([
         [
           '01가1001',
@@ -49,21 +50,42 @@ export class CarService {
           ],
         ],
         [
-          '02가1234',
+          '01가1002',
           [
             [35.1104359, 126.8758168],
             [35.1101437, 126.8758168],
             [35.1098723, 126.8757785],
           ],
         ],
+        [
+          '01가1003',
+          [
+            [3, 126.8747403],
+            [3, 126.8750192],
+            [3, 126.8752016],
+            [3, 126.8754054],
+            [3, 126.8755771],
+            [3, 126.8756951],
+          ],
+        ],
       ]),
     },
     {
       custId: 'test2222',
-      carList: ['01가1002'],
+      carList: ['02가1001', '02가1002'],
       lat_lon: new Map([
         [
-          '01가1002',
+          '02가1001',
+          [
+            [35.1104359, 126.8758168],
+            [35.1101437, 126.8758168],
+            [35.1098723, 126.8757785],
+            [35.1096531, 126.8757657],
+            [35.109413, 126.8757147],
+          ],
+        ],
+        [
+          '02가1002',
           [
             [35.1104359, 126.8758168],
             [35.1101437, 126.8758168],
@@ -74,10 +96,25 @@ export class CarService {
         ],
       ]),
     },
+    {
+      custId: 'test3333',
+      carList: ['03가1001'],
+      lat_lon: new Map([
+        [
+          '03가1001',
+          [
+            [33333, 126.8758168],
+            [33333, 126.8758168],
+            [33333, 126.8757785],
+            [33333, 126.8757657],
+            [33333, 126.8757147],
+          ],
+        ],
+      ]),
+    },
   ];
   @Interval(5000)
   interval() {
-    console.log(this.carArr[0].lat_lon.size);
     for (let i = 0; i < this.carArr.length; i++) {
       for (let j = 0; j < this.carArr[i].carList.length; j++) {
         const tempArr = this.carArr[i].lat_lon.get(
@@ -86,31 +123,49 @@ export class CarService {
         this.carArr[i].lat_lon.get(this.carArr[i].carList[j]).shift();
         this.carArr[i].lat_lon.get(this.carArr[i].carList[j]).push(tempArr);
         console.log(
-          `${i + 1} : ${
+          `${i + 1}-${j + 1} : ${
             this.carArr[i].lat_lon.get(this.carArr[i].carList[j])[0]
           }`,
         );
       }
     }
-    /*
-    console.log(this.carArr.length);
-    this.carArr.forEach((arr) => {
-      for (let i = 0; i < arr.carList.length; i++) {
-        const tempArr = this.carArr[0].lat_lon.get(arr.carList[i])[0];
-        this.carArr[0].lat_lon.get(arr.carList[i]).shift();
-        this.carArr[0].lat_lon.get(arr.carList[i]).push(tempArr);
-      }
-    });
-
-    const tempArr = this.carArr[0].lat_lon.get('01가1001')[0];
-    this.carArr[0].lat_lon.get('01가1001').shift();
-    this.carArr[0].lat_lon.get('01가1001').push(tempArr);
-    console.log(this.carArr[0].lat_lon.get('01가1001')[0]);*/
   }
 
   async getCarLocation(data) {
     const carInfo = [];
+    let rsltCd = '301';
+    if (!data.custId || !data.carList || !data.carList[0].carNum) {
+      return {
+        rsltCd: rsltCd,
+        infoList: carInfo,
+      };
+    }
+    await this.carArr.forEach((car) => {
+      if (car.custId === data.custId) {
+        rsltCd = '000';
+        for (let i = 0; i < car.carList.length; i++) {
+          //console.log(car.lat_lon.get(car.carList[i])[0][0]);
 
+          for (let j = 0; j < data.carList.length; j++) {
+            if (car.carList[i] === data.carList[j].carNum) {
+              carInfo.push({
+                carNum: car.carList[i],
+                gpsLat: car.lat_lon.get(car.carList[i])[0][0],
+                gpsLong: car.lat_lon.get(car.carList[i])[0][1],
+              });
+            }
+          }
+
+          // carInfo.push({
+          //   carNum: car.carList[i],
+          //   gpsLat: car.lat_lon.get(car.carList[i])[0][0],
+          //   gpsLong: car.lat_lon.get(car.carList[i])[0][1],
+          // });
+        }
+      }
+    });
+
+    /*
     await this.carArr.forEach((car) => {
       if (car.custId !== data.custId) {
         //throw new Error('202 API 인증키 사용불가');
@@ -130,17 +185,31 @@ export class CarService {
     });
     console.log(carInfo);
     let resultArr = [];
-    for (let i = 0; i < carInfo.length; i++) {
+
+    for (let j = 0; j < carInfo.length; j++) {
       resultArr.push({
-        carNum: this.carArr[0].carList[i],
-        gpsLat: this.carArr[0].lat_lon.get(carInfo[i])[0][0],
-        gpsLong: this.carArr[0].lat_lon.get(carInfo[i])[0][1],
+        carNum: this.carArr[0].carList[j],
+        gpsLat: this.carArr[0].lat_lon.get(carInfo[j])[0][0],
+        gpsLong: this.carArr[0].lat_lon.get(carInfo[j])[0][1],
       });
+    }
+    */
+
+    /*
+      for (let i = 0; i < carInfo.length; i++) {
+        resultArr.push({
+          carNum: this.carArr[0].carList[i],
+          gpsLat: this.carArr[0].lat_lon.get(carInfo[i])[0][0],
+          gpsLong: this.carArr[0].lat_lon.get(carInfo[i])[0][1],
+        });
+      }*/
+    if (carInfo.length <= 0) {
+      rsltCd = '302';
     }
 
     return {
-      rsltCd: '000',
-      infoList: resultArr,
+      rsltCd: rsltCd,
+      infoList: carInfo,
     };
   }
 }
