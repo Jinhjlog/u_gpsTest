@@ -507,7 +507,7 @@ export class CarService {
       ]),
     }, // index : carArr[2]
   ];
-  @Interval(1000) // 5초
+  @Interval(5000) // 5초
   interval() {
     for (let i = 0; i < this.carArr.length; i++) {
       for (let j = 0; j < this.carArr[i].carList.length; j++) {
